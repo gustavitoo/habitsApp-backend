@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ApiGatewayModule } from './api-gateway.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { RpcToHttpExceptionFilter } from '@app/common/exceptions/rpc-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
@@ -15,6 +16,8 @@ async function bootstrap() {
       },
     },
   });
+
+  app.useGlobalFilters(new RpcToHttpExceptionFilter());
 
   await app.startAllMicroservices();
   await app.listen(process.env.API_GATEWAY_PORT || 3000);
