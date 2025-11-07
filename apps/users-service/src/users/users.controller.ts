@@ -1,10 +1,11 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller()
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -13,19 +14,24 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @MessagePattern('findAllUsers')
-  findAll() {
-    return this.usersService.findAll();
+  @MessagePattern('findByIdUser')
+  findById(@Payload() id: number) {
+    return this.usersService.findById(id);
   }
 
-  @MessagePattern('findOneUser')
-  findOne(@Payload() id: number) {
-    return this.usersService.findOne(id);
+  @MessagePattern('findByEmailUser')
+  findByEmail(@Payload() email: string) {
+    return this.usersService.findByEmail(email);
+  }
+
+  @MessagePattern('findByEmailForAuth')
+  findByEmailForAuth(@Payload() email: string) {
+    return this.usersService.findByEmailForAuth(email);
   }
 
   @MessagePattern('updateUser')
-  update(@Payload() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(updateUserDto.id, updateUserDto);
+  update(@Payload() payload: { id: number, updateUserDto: UpdateUserDto }) {
+    return this.usersService.update(payload.id, payload.updateUserDto);
   }
 
   @MessagePattern('removeUser')

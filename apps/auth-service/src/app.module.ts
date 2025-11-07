@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -11,21 +11,17 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (config: ConfigService): TypeOrmModuleOptions => ({
-        type: config.get<'postgres'>('DB_TYPE') as any,
-        host: config.get<string>('DB_HOST'),
-        port: +config.get('DB_PORT') || 5432,
-        username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_DATABASE'),
-        autoLoadEntities: true,
-        synchronize: config.get<string>('DB_SYNCHRONIZE') === 'true',
-        logging: config.get<string>('DB_LOGGING') === 'true',
-      }),
-      inject: [ConfigService],
-    }),
+    ClientsModule.register([
+      {
+        name: 'USERS_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: [`amqp://${process.env.RABBITMQ_USERNAME}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}`],
+          queue: 'users_queue',
+          queueOptions: { durable: false },
+        },
+      },
+    ]),
     AuthModule
   ],
   controllers: [AppController],

@@ -1,26 +1,78 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserEntity, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectRepository(UserEntity)
+    private usersRepository: Repository<UserEntity>,
+  ) {}
+
+  async create(createUserDto: CreateUserDto): Promise<UserEntity> {
+    const { nombre, email, password, role } = createUserDto;
+
+    const emailExists = await this.findByEmail(email);
+    if (emailExists) {
+      throw new ConflictException('El correo electrónico ya está registrado');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const user = this.usersRepository.create({
+      nombre,
+      email,
+      password: hashedPassword,
+      role: role || UserRole.USER,
+    });
+    
+    return this.usersRepository.save(user);
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findByEmail(email: string): Promise<UserEntity | null> {
+    return this.usersRepository.findOne({ where: { email } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findByEmailForAuth(email: string): Promise<UserEntity | null> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .addSelect('user.password')
+      .getOne();
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findById(id: number): Promise<UserEntity | null> {
+    return this.usersRepository.findOne({ where: { id } });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async viewProfile(userId: number): Promise<UserEntity | null> {
+    return this.usersRepository.findOne({ where: { id: userId } });
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+    const user = await this.usersRepository.findOneOrFail({ where: { id } });
+
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
+    this.usersRepository.merge(user, updateUserDto);
+
+    return this.usersRepository.save(user);
+  }
+
+  async remove(id: number): Promise<{ deleted: boolean; id: number }> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado.`);
+    }
+
+    await this.usersRepository.remove(user);
+    
+    return { deleted: true, id };
   }
 }
