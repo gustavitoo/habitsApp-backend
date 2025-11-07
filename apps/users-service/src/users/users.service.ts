@@ -1,10 +1,11 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity, UserRole } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UserEntity } from './entities/user.entity';
+import { CreateUserDto, UserRole } from '@app/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { HandledRpcException } from '@app/common/exceptions/rpc-exceptions.class';
 
 @Injectable()
 export class UsersService {
@@ -14,17 +15,18 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserEntity> {
-    const { nombre, email, password, role } = createUserDto;
+    const { name, email, password, role } = createUserDto;
 
     const emailExists = await this.findByEmail(email);
     if (emailExists) {
-      throw new ConflictException('El correo electrónico ya está registrado');
+      console.log('El correo electrónico ya está registrado');
+      throw new HandledRpcException(409, 'El correo electrónico ya está registrado');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const user = this.usersRepository.create({
-      nombre,
+      name,
       email,
       password: hashedPassword,
       role: role || UserRole.USER,
