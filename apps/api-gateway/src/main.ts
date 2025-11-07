@@ -8,8 +8,8 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://guest:guest@localhost:5672'],
-      queue: 'api_gateway',                        
+      urls: [`amqp://${process.env.RABBITMQ_USERNAME}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}`],
+      queue: 'api_gateway',
       queueOptions: {
         durable: false,                            
       },
@@ -20,7 +20,7 @@ async function bootstrap() {
   await app.listen(process.env.API_GATEWAY_PORT || 3000);
 
   console.log(`🚀 API Gateway corriendo en http://localhost:${process.env.API_GATEWAY_PORT || 3000}`);
-  console.log(`📡 Conectado a RabbitMQ en amqp://localhost:5672`);
+  console.log(`📡 Conectado a RabbitMQ en amqp://${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}`);
 }
 
 bootstrap();
