@@ -5,7 +5,7 @@ import { CreateUserDto } from '@app/common';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { firstValueFrom } from 'rxjs';
-import { HandledRpcException } from '@app/common/exceptions/rpc-exceptions.class';
+import { CustomRpcException } from '@app/common/exceptions/rpc-exceptions.class';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +25,7 @@ export class AuthService {
     } catch (error) {
       const statusCode = error?.statusCode ?? 500;
       const message = error?.message ?? 'Error interno en user-service';
-      throw new HandledRpcException(statusCode, message);
+      throw new CustomRpcException(statusCode, message);
     }
   }
 
@@ -35,13 +35,13 @@ export class AuthService {
     );
 
     if (!user) {
-      throw new HandledRpcException(409, 'Credenciales inválidas');
+      throw new CustomRpcException(409, 'Credenciales inválidas');
     }
 
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
 
     if (!isPasswordValid) {
-      throw new HandledRpcException(409, 'Credenciales inválidas');
+      throw new CustomRpcException(409, 'Credenciales inválidas');
     }
 
     return this.signToken(user.id, user.email);

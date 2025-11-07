@@ -5,7 +5,7 @@ import { UserEntity } from './entities/user.entity';
 import { CreateUserDto, UserRole } from '@app/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { HandledRpcException } from '@app/common/exceptions/rpc-exceptions.class';
+import { CustomRpcException } from '@app/common/exceptions/rpc-exceptions.class';
 
 @Injectable()
 export class UsersService {
@@ -20,7 +20,7 @@ export class UsersService {
     const emailExists = await this.findByEmail(email);
     if (emailExists) {
       console.log('El correo electrónico ya está registrado');
-      throw new HandledRpcException(409, 'El correo electrónico ya está registrado');
+      throw new CustomRpcException(409, 'El correo electrónico ya está registrado');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

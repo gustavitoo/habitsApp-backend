@@ -1,6 +1,6 @@
 import { RpcException } from '@nestjs/microservices';
 
-export class HandledRpcException extends RpcException {
+export class CustomRpcException extends RpcException {
   constructor(
     public readonly statusCode: number,
     public readonly message: string,
