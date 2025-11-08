@@ -1,98 +1,215 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🧩 Aplicación de Hábitos (BACKEND) — NestJS + TypeORM + PostgreSQL + RabbitMQ
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 📘 Descripción general
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Este proyecto implementa una arquitectura de **microservicios** desarrollada con **NestJS**, orientada a la autenticación y gestión de usuarios.  
+Actualmente cuenta con:
 
-## Description
+- **API Gateway** → punto de entrada principal que comunica los clientes con los microservicios internos.
+- **Auth Service** → responsable de la autenticación (registro, login, emisión de tokens JWT).
+- **Users Service** → maneja la persistencia y lógica de usuarios (creación, validación, consulta en base de datos).
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+El sistema utiliza **RabbitMQ** como broker de mensajes para comunicación entre microservicios y **PostgreSQL** como base de datos principal.  
+El flujo actual permite **registrar y autenticar usuarios**, devolviendo un **token JWT** válido al frontend.
 
-## Project setup
+---
 
-```bash
-$ pnpm install
+## 🏗️ Arquitectura del proyecto
+
+```
+/apps
+ ├── api-gateway/        # Puerta de entrada HTTP (NestJS)
+ ├── auth-service/       # Manejo de autenticación, JWT, y login/registro
+ └── users-service/      # CRUD y lógica de usuarios (almacenamiento en DB)
+/libs
+ └── common/             # Código compartido: DTOs, helpers, excepciones, utils, etc.
 ```
 
-## Compile and run the project
+### 🧠 Flujo general
+
+1. El cliente (frontend) realiza una petición HTTP al **API Gateway** (`/auth/register` o `/auth/login`).
+2. El **API Gateway** reenvía la solicitud mediante RPC (RabbitMQ) al **Auth Service**.
+3. El **Auth Service** coordina la lógica de negocio:
+   - Valida el cuerpo de la petición.
+   - Contacta al **Users Service** para crear o validar credenciales.
+   - Genera y retorna un **JWT token** si el proceso es exitoso.
+4. El **API Gateway** recibe la respuesta, maneja posibles errores (via `RpcException`) y envía la respuesta final al cliente.
+
+---
+
+## ⚙️ Tecnologías utilizadas
+
+| Tecnología | Uso principal |
+|-------------|----------------|
+| **NestJS** | Framework principal para crear microservicios |
+| **TypeORM** | ORM para la conexión con PostgreSQL |
+| **PostgreSQL** | Base de datos relacional principal |
+| **RabbitMQ** | Broker de mensajes para comunicación entre microservicios |
+| **bcrypt** | Hash de contraseñas seguras |
+| **JWT (jsonwebtoken)** | Generación y validación de tokens de sesión |
+| **Docker / Docker Compose** | Orquestación de contenedores para desarrollo y despliegue |
+| **concurrently** | Ejecución paralela de microservicios en desarrollo |
+| **dotenv** | Manejo de variables de entorno |
+| **class-validator / class-transformer** | Validación de DTOs |
+
+---
+
+## 🧰 Requisitos previos
+
+Antes de ejecutar el proyecto, asegúrate de tener instalado:
+
+| Requisito | Versión recomendada |
+|------------|--------------------|
+| **Node.js** | >= 18.x |
+| **pnpm** | >= 9.x |
+| **Docker & Docker Compose** | Última versión estable |
+| **PostgreSQL (opcional)** | Si deseas correr la base localmente sin Docker |
+| **RabbitMQ (opcional)** | Si no usas Docker Compose |
+
+---
+
+## 🚀 Instalación y configuración
+
+### 1️⃣ Clonar el repositorio
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+git clone https://github.com/gustavitoo/habitsApp-backend.git
+cd habitsApp-backend
 ```
 
-## Run tests
+---
+
+### 2️⃣ Instalar dependencias
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+pnpm install
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 3️⃣ Configurar variables de entorno
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Actualmente los servicios apuntan a un sólo servidor, entonces tenemos un sólo archivo *.env*:
+
+```env
+# 🌐 App
+API_GATEWAY_PORT=3000
+API_GATEWAY_ENV=development
+
+# 🗄️ PostgreSQL
+DB_TYPE=postgres
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=mypassword
+DB_NAME=habits_app
+
+# 📦 RabbitMQ
+RABBITMQ_HOST=localhost
+RABBITMQ_PORT=5672
+RABBITMQ_USERNAME=guest
+RABBITMQ_PASSWORD=guest
+
+# ⚙️ TypeORM
+DB_SYNCHRONIZE=true
+DB_LOGGING=true
+
+# 🔐 JWT
+JWT_SECRET=super_secret_key
+```
+
+---
+
+### 4️⃣ Levantar los servicios con Docker
+
+El proyecto incluye un `docker-compose.yml` que levanta:
+- PostgreSQL  
+- RabbitMQ  
+- Todos los microservicios (gateway, auth y users) **[EN PROCESO]**
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+docker compose up --build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Esto levantará todo el entorno con un solo comando 🚀  
+Accede a:
+- **API Gateway** → [http://localhost:3000](http://localhost:3000)  
+- **RabbitMQ panel** → [http://localhost:15672](http://localhost:15672) (user: guest / pass: guest)
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+### 5️⃣ Levantar en entorno local
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Puedes ejecutar todos los microservicios con `concurrently`:
 
-## Support
+```bash
+npm run start:all
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Este comando ejecuta:
 
-## Stay in touch
+```json
+"start:all": "concurrently --names \"GATEWAY,AUTH,USERS\" --prefix-colors \"blue,magenta,green\" \"npm run start:gateway\" \"npm run start:auth\" \"npm run start:users\""
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Verás los logs coloridos de cada servicio en tiempo real 🧠
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 🔑 Endpoints actuales
+
+### Registro
+```
+POST /auth/register
+```
+**Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "12345678"
+}
+```
+
+**Respuesta:**
+```json
+{
+  "message": "Usuario creado exitosamente",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5..."
+}
+```
+
+### Login
+```
+POST /auth/login
+```
+**Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "12345678"
+}
+```
+
+**Respuesta:**
+```json
+{
+  "message": "Login exitoso",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5..."
+}
+```
+
+---
+
+## 🧱 Próximos pasos / Roadmap
+
+- 🔹 Endpoint `/profile` (propio o por ID, con control de roles)
+- 🔹 Middleware global de autorización (JWT + Roles)
+- 🔹 Integración con un frontend (React, Vite)
+- 🔹 Logging distribuido y trazabilidad (e.g. Winston / OpenTelemetry)
+- 🔹 Monitoreo y métricas con Prometheus + Grafana
+- 🔹 Test unitarios y e2e por microservicio (Jest)
+
+---
+
+## 🧾 Licencia
+Este proyecto está bajo licencia **MIT**.
