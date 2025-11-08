@@ -1,6 +1,7 @@
-import { Controller, Post, Body, UsePipes, ValidationPipe, HttpException, HttpStatus, ConflictException } from '@nestjs/common';
+import { Controller, Post, Body, UsePipes, ValidationPipe } from '@nestjs/common';
 import { LoginDto, CreateUserDto } from '@app/common'; 
 import { AuthService } from './auth.service';
+import { handleRpcError } from '@app/common/utils/handle-rpc-error';
 
 @Controller('auth')
 export class AuthController {
@@ -9,12 +10,20 @@ export class AuthController {
   @Post('register')
   @UsePipes(ValidationPipe)
   async register(@Body() registerDto: CreateUserDto) {
-    return await this.authService.register(registerDto);
+    try {
+      return await this.authService.register(registerDto);
+    } catch (error) {
+      handleRpcError('auth-service', error);
+    }
   }
 
   @Post('login')
   @UsePipes(ValidationPipe)
   async login(@Body() loginDto: LoginDto) {
-    return await this.authService.login(loginDto);
+    try {
+      return await this.authService.login(loginDto);
+    } catch (error) {
+      handleRpcError('auth-service', error);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
@@ -19,7 +19,6 @@ export class UsersService {
 
     const emailExists = await this.findByEmail(email);
     if (emailExists) {
-      console.log('El correo electrónico ya está registrado');
       throw new CustomRpcException(409, 'El correo electrónico ya está registrado');
     }
 
@@ -70,7 +69,7 @@ export class UsersService {
   async remove(id: number): Promise<{ deleted: boolean; id: number }> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(`Usuario con ID ${id} no encontrado.`);
+      throw new CustomRpcException(404, `Usuario con ID ${id} no encontrado.`);
     }
 
     await this.usersRepository.remove(user);
