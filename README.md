@@ -143,13 +143,13 @@ Accede a:
 Puedes ejecutar todos los microservicios con `concurrently`:
 
 ```bash
-npm run start:all
+pnpm run start:all
 ```
 
 Este comando ejecuta:
 
 ```json
-"start:all": "concurrently --names \"GATEWAY,AUTH,USERS\" --prefix-colors \"blue,magenta,green\" \"npm run start:gateway\" \"npm run start:auth\" \"npm run start:users\""
+"start:all": "concurrently --names \"GATEWAY,AUTH,USERS\" --prefix-colors \"blue,magenta,green\" \"pnpm run start:gateway\" \"pnpm run start:auth\" \"pnpm run start:users\""
 ```
 
 Verás los logs coloridos de cada servicio en tiempo real 🧠
@@ -202,9 +202,22 @@ POST /auth/login
 
 ## 🧱 Próximos pasos / Roadmap
 
-- 🔹 Endpoint `/profile` (propio o por ID, con control de roles)
 - 🔹 Middleware global de autorización (JWT + Roles)
-- 🔹 Integración con un frontend (React, Vite)
+- 🔹 Integración con un frontend (Flutter)
+- 🔹 Despliegue en la nube (AWS / Heroku / DigitalOcean / Render)
+- 🔹 CI/CD con GitHub Actions
+- 🔹 Mejoras en seguridad (rate limiting, helmet, CORS)
+- 🔹 Implementar refresh tokens
+- 🔹 Documentación automática con Swagger
+- 🔹 Optimización de performance y escalabilidad
+- 🔹 Implementar caché con Redis
+- 🔹 Soporte para múltiples bases de datos
+- 🔹 Internacionalización (i18n)
+- 🔹 Soporte para OAuth2 (Google, Facebook, etc.)
+- 🔹 Implementar patrones de diseño (Factory, Singleton, etc.)
+- 🔹 Soporte para pruebas de carga y estrés
+- 🔹 Implementar API Gateway avanzado (rate limiting, caching)
+- 🔹 Soporte para microservicios adicionales (notificaciones, pagos, etc.)
 - 🔹 Logging distribuido y trazabilidad (e.g. Winston / OpenTelemetry)
 - 🔹 Monitoreo y métricas con Prometheus + Grafana
 - 🔹 Test unitarios y e2e por microservicio (Jest)
