@@ -32,4 +32,9 @@ export class TasksController {
   remove(@Payload() id: number) {
     return this.tasksService.remove(id);
   }
+
+  @MessagePattern('create_tasks_from_template')
+  createFromTemplate(@Payload() payload: { userId: number; profileType: string }) {
+    return this.tasksService.createFromTemplate(payload.userId, payload.profileType);
+  }
 }

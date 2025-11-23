@@ -11,14 +11,22 @@ import { CustomRpcException } from '@app/common/exceptions/rpc-exceptions.class'
 export class AuthService {
   constructor(
     @Inject('USERS_SERVICE') private readonly usersClient: ClientProxy,
+    @Inject('TASKS_SERVICE') private readonly tasksClient: ClientProxy,
     private readonly jwtService: JwtService,
   ) { }
 
-  async register(registerDto: CreateUserDto) {
+  async register(registerDto: CreateUserDto & { profileType?: string }) {
     try {
       const newUser = await firstValueFrom(
         this.usersClient.send('createUser', registerDto)
       );
+
+      if (registerDto.profileType) {
+        this.tasksClient.emit('create_tasks_from_template', {
+          userId: newUser.id,
+          profileType: registerDto.profileType,
+        });
+      }
 
       return this.signToken(newUser.id, newUser.email);
 
