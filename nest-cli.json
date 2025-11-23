@@ -37,6 +37,15 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
+    "tasks-service": {
+      "type": "application",
+      "root": "apps/tasks-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/tasks-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/tasks-service/tsconfig.app.json"
+      }
+    },
     "users": {
       "type": "application",
       "root": "apps/users",
